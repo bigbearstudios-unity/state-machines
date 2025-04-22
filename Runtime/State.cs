@@ -1,11 +1,6 @@
-using System;
-using UnityEngine.UIElements;
+using BBUnity.StateMachines.Exceptions;
 
 namespace BBUnity.StateMachines {
-
-    internal class StateAlreadyAssignedException : Exception {
-        public StateAlreadyAssignedException() : base(message: "BBUnity.StateMachines.State - State is already assigned to a state machine") {}
-    }
 
     /// <summary>
     /// A single State 
