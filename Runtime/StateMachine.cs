@@ -32,22 +32,20 @@ namespace BBUnity.StateMachines {
             AddStates(states);
         }
 
-        public void AddState(string key, State state, bool setState = false) {
+        public void AddState(string key, State state) {
             if(key == null) throw new ArgumentNullException("key");
             
             state.SetStateMachine(this);
             state.SetReferenceKey(key);
 
             _availableStates.Add(key.GetHashCode(), state);
-
-            if(setState) { SetState(state); }
         }
 
         public void AddStates(StateParameters stateParameters) {
             if(stateParameters == null) throw new ArgumentNullException("states");
             
             foreach(StateParameter p in stateParameters) {
-                AddState(p.Key, p.State, p.SetCurrentState);
+                AddState(p.Key, p.State);
             }
         }
 
