@@ -7,10 +7,8 @@ namespace BBUnity.StateMachines {
     /// A basic statemachine which allows the following functionality:
     /// - Storing states to be used
     /// - Setting the state
-    /// The StateMachine also acts as a State and thus can be overridden
-    /// to perform its own state management
     /// </summary>
-    public class StateMachine : IEnumerable<KeyValuePair<int, State>> {
+    public class StateMachine : IEnumerable<KeyValuePair<string, State>> {
 
         /// <summary>
         /// The current state. This is the state which will be processed in
@@ -25,7 +23,14 @@ namespace BBUnity.StateMachines {
         /// The available states. These are added by the Developer either via the constructor
         /// or via the Add method.
         /// </summary>
-        private Dictionary<int, State> _availableStates = new Dictionary<int, State>();
+        private Dictionary<string, State> _availableStates = new Dictionary<string, State>();
+
+        /// <summary>
+        /// Fired immediately after every state transition completes.
+        /// The first argument is the state that was exited (null on the very first transition),
+        /// the second is the state that was entered.
+        /// </summary>
+        public event Action<State, State> OnStateChanged;
 
         public StateMachine() { }
         public StateMachine(StateParameters states) {
@@ -33,23 +38,47 @@ namespace BBUnity.StateMachines {
         }
 
         public void AddState(string key, State state) {
-            if(key == null) throw new ArgumentNullException("key");
-            
+            if(key == null)   throw new ArgumentNullException("key");
+            if(state == null) throw new ArgumentNullException("state");
+
             state.SetStateMachine(this);
             state.SetReferenceKey(key);
 
-            _availableStates.Add(key.GetHashCode(), state);
+            _availableStates.Add(key, state);
         }
 
         public void AddStates(StateParameters stateParameters) {
             if(stateParameters == null) throw new ArgumentNullException("states");
-            
+
             foreach(StateParameter p in stateParameters) {
                 AddState(p.Key, p.State);
             }
         }
 
+        /// <summary>
+        /// Returns true if a state has been registered under <paramref name="key"/>.
+        /// </summary>
+        public bool HasState(string key) {
+            if(key == null) throw new ArgumentNullException("key");
+
+            return _availableStates.ContainsKey(key);
+        }
+
+        /// <summary>
+        /// Removes the state registered under <paramref name="key"/>.
+        /// Throws <see cref="KeyNotFoundException"/> if no state with that key exists.
+        /// </summary>
+        public void RemoveState(string key) {
+            if(key == null) throw new ArgumentNullException("key");
+
+            if(!_availableStates.Remove(key)) {
+                throw new KeyNotFoundException($"BBUnity.StateMachines.StateMachine - No state registered with key '{key}'");
+            }
+        }
+
         public void SetState(string key, bool forceTransition = false) {
+            if(key == null) throw new ArgumentNullException("key");
+
             SetState(GetState(key), forceTransition);
         }
 
@@ -64,7 +93,11 @@ namespace BBUnity.StateMachines {
         }
 
         private State GetState(string key) {
-            return _availableStates[key.GetHashCode()];
+            if(!_availableStates.TryGetValue(key, out State state)) {
+                throw new KeyNotFoundException($"BBUnity.StateMachines.StateMachine - No state registered with key '{key}'");
+            }
+
+            return state;
         }
 
         /// <summary>
@@ -75,27 +108,45 @@ namespace BBUnity.StateMachines {
         /// <param name="newState"></param>
         /// <returns></returns>
         protected void ReplaceState(State oldState, State newState) {
+            if(newState == null) throw new ArgumentNullException("newState", "BBUnity.StateMachines.StateMachine - Cannot transition to a null state");
+
             oldState?.Exit();
             _currentState = newState;
+            newState.Enter();
 
-            newState?.Enter();
+            OnStateChanged?.Invoke(oldState, newState);
         }
 
+        /// <summary>
+        /// Drives the current state's per-frame tick. Call this from MonoBehaviour.Update().
+        /// </summary>
         public void Update() {
             _currentState?.Update();
         }
 
         /// <summary>
-        /// Calls OnEnter on the state machine, this will:
-        /// - Call OnEnter on the current transition
+        /// Drives the current state's physics tick. Call this from MonoBehaviour.FixedUpdate().
+        /// </summary>
+        public void FixedUpdate() {
+            _currentState?.FixedUpdate();
+        }
+
+        /// <summary>
+        /// Drives the current state's post-render tick. Call this from MonoBehaviour.LateUpdate().
+        /// </summary>
+        public void LateUpdate() {
+            _currentState?.LateUpdate();
+        }
+
+        /// <summary>
+        /// Calls Enter on the current state.
         /// </summary>
         public void Enter() {
             _currentState?.Enter();
         }
 
         /// <summary>
-        /// Calls OnExit on the state machine, this will:
-        /// - Call OnExit on the current transition
+        /// Calls Exit on the current state.
         /// </summary>
         public void Exit() {
             _currentState?.Exit();
@@ -105,7 +156,7 @@ namespace BBUnity.StateMachines {
          * Enumeration
          */
 
-        public IEnumerator<KeyValuePair<int, State>> GetEnumerator() {
+        public IEnumerator<KeyValuePair<string, State>> GetEnumerator() {
             return _availableStates.GetEnumerator();
         }
 

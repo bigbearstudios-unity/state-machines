@@ -13,10 +13,7 @@ namespace BBUnity.StateMachines {
     /// </summary>
     public abstract class State {
 
-        /// <summary>
-        /// Reference to the statemachine which owns this state
-        /// </summary>
-        protected StateMachine _stateMachine;
+        private StateMachine _stateMachine;
         protected StateMachine StateMachine { get { return _stateMachine; } }
         private string _referenceKey = null;
         public string ReferenceKey {
@@ -42,7 +39,7 @@ namespace BBUnity.StateMachines {
 
         /// <summary>
         /// Utility method which calls 'SetState' on the underlying StateMachine.
-        /// This functionality can be recreated manually by calling _stateMachine.SetState()
+        /// This functionality can be recreated manually by calling StateMachine.SetState()
         /// </summary>
         /// <param name="key"></param>
         /// <param name="forceTransition"></param>
@@ -52,22 +49,28 @@ namespace BBUnity.StateMachines {
 
         public State() {}
 
-        // TODO
-        // Add some helper methods here which can be used to change the state directly
-        // via the statemachines update, enter, exit methods
-
         /// <summary>
-        /// Called upon the statemachines update being called if this is the current state
+        /// Called every frame while this state is active. Override to add per-frame behaviour.
         /// </summary>
         public virtual void Update() {}
 
         /// <summary>
-        /// Called upon entering the state
+        /// Called every physics step while this state is active. Override to add physics behaviour.
+        /// </summary>
+        public virtual void FixedUpdate() {}
+
+        /// <summary>
+        /// Called each late-update while this state is active. Override to add post-render behaviour.
+        /// </summary>
+        public virtual void LateUpdate() {}
+
+        /// <summary>
+        /// Called when this state becomes the active state.
         /// </summary>
         public virtual void Enter() {}
 
         /// <summary>
-        /// Called upon exiting the state
+        /// Called when this state is replaced by another state.
         /// </summary>
         public virtual void Exit() {}
     }

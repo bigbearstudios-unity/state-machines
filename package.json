@@ -1,6 +1,6 @@
 {
   "name": "com.bigbearstudios.bbunity-state-machines",
-  "version": "2.1.1",
+  "version": "3.0.0",
   "displayName": "BBUnity State Machines",
   "description": "A collection of state machines to be used with Unity - Requires Unity / C# to use",
   "unity": "2018.3",
