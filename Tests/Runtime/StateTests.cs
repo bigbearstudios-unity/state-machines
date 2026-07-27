@@ -7,10 +7,6 @@ using BBUnity.StateMachines.Internal;
 namespace StateMachines {
     public class StateTests {
 
-        // ----------------------------------------------------------------
-        // Test doubles
-        // ----------------------------------------------------------------
-
         private class StubState : State {
             public int EnterCount  { get; private set; }
             public int ExitCount   { get; private set; }
@@ -28,10 +24,6 @@ namespace StateMachines {
             public SelfTransitioningState(string nextKey) { _nextKey = nextKey; }
             public override void Update() => SetState(_nextKey);
         }
-
-        // ================================================================
-        // StateMachine.AddState
-        // ================================================================
 
         [Test]
         public void AddState_SingleState_CanTransitionToIt() {
